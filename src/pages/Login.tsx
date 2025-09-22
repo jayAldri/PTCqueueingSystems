@@ -58,14 +58,18 @@ const Login = () => {
       style={{ backgroundImage: "url('/ptcfront.png')" }}
     >
       {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/50" />
+      <div className="absolute inset-0 bg-black/10 backdrop-blur-sm" />
 
       {/* Content */}
       <div className="relative w-full max-w-md space-y-6 z-10">
         <div className="text-center space-y-2">
           <div className="flex justify-center">
-            <div className="h-16 w-16 rounded-xl gradient-hero flex items-center justify-center shadow-strong">
-              <GraduationCap className="h-8 w-8 text-white" />
+            <div className="flex justify-center">
+              <img
+                src="/ptclogo.png"
+                alt="PTC Logo"
+                className="h-20 w-20 rounded-full shadow-lg object-contain bg-white p-1"
+              />
             </div>
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">

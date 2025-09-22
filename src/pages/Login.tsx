@@ -53,8 +53,15 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 px-4">
-      <div className="w-full max-w-md space-y-6">
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center px-4 relative"
+      style={{ backgroundImage: "url('/ptcfront.png')" }}
+    >
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/50" />
+
+      {/* Content */}
+      <div className="relative w-full max-w-md space-y-6 z-10">
         <div className="text-center space-y-2">
           <div className="flex justify-center">
             <div className="h-16 w-16 rounded-xl gradient-hero flex items-center justify-center shadow-strong">

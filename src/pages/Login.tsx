@@ -15,37 +15,63 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+  setError('');
 
-    const user = login(email, password);
-    
+  try {
+    const user = await login(email, password); // mock or real login API
+
     if (user) {
-      // Redirect based on role
-      switch (user.role) {
-        case 'student':
-          navigate('/student');
-          break;
-        case 'registrar':
-          navigate('/staff/registrar');
-          break;
-        case 'cashier':
-          navigate('/staff/cashier');
-          break;
-        case 'admin':
-          navigate('/admin');
-          break;
-        default:
-          navigate('/');
+      // Save user in localStorage
+      localStorage.setItem("currentUser", JSON.stringify(user));
+
+      if (user.role === "student") {
+        try {
+          //  Check if this student already has a profile in DB
+          const res = await fetch(`http://localhost:5000/students/${user.id}`);
+          
+          if (res.status === 404) {
+            //  No profile → redirect to profile completion
+            navigate("/student/profile");
+          } else {
+            //  Profile exists → go to dashboard
+            navigate("/student");
+          }
+        } catch (err) {
+          console.error("Error checking student profile:", err);
+          // fallback: ask them to complete profile
+          navigate("/student/profile");
+        }
+      } else {
+        // Roles other than student → direct to their dashboards
+        switch (user.role) {
+          case "registrar":
+            navigate("/staff/registrar");
+            break;
+          case "cashier":
+            navigate("/staff/cashier");
+            break;
+          case "admin":
+            navigate("/admin");
+            break;
+          default:
+            navigate("/");
+        }
       }
     } else {
-      setError('Invalid email or password');
+      setError("Invalid email or password");
     }
-    
+  } catch (err) {
+    console.error(err);
+    setError("Login failed. Please try again.");
+  } finally {
     setLoading(false);
-  };
+  }
+};
+
+
 
   const quickLogin = (role: string, email: string) => {
     setEmail(email);

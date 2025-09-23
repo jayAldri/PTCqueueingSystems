@@ -15,7 +15,7 @@ export const mockUsers: User[] = [
     id: staff.id,
     fullName: staff.fullName,
     role: staff.role,
-    email: `${staff.username}@ptc.edu.ph`,
+    email: `${staff.username}@paterostechnologicalcollege.edu.ph`,
     serviceType: staff.serviceType
   }))
 ];
@@ -25,7 +25,11 @@ export const getCurrentUser = (): User | null => {
   return storedUser ? JSON.parse(storedUser) : null;
 };
 
-export const login = (email: string, password: string): User | null => {
+export const login = async (email: string, password: string): Promise<User | null> => {
+  if (!email.endsWith('@paterostechnologicalcollege.edu.ph')){
+    return null;
+  }
+
   // Mock login - find user by email
   const user = mockUsers.find(u => u.email === email);
   if (user && password === 'password123') { // Mock password

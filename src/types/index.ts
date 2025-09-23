@@ -9,8 +9,10 @@ export interface Student {
   fullName: string;
   course: string;
   yearLevel: string;
+  section: string;
   email: string;
   contactNumber: string;
+  role: "student";
 }
 
 export interface QueueTransaction {

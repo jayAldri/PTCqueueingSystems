@@ -16,11 +16,12 @@ export interface Student {
 export interface QueueTransaction {
   id: string;
   studentId: string;
-  student?: Student;
+  student?: User | Student;
   queueNumber: string;
   serviceType: ServiceType;
   status: TransactionStatus;
   dateTime: Date;
+  preferredTime?: string;
   completedAt?: Date;
   notes?: string;
 }

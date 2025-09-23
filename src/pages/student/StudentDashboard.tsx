@@ -1,32 +1,82 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { QueueCard } from '@/components/queue/QueueCard';
 import { getCurrentUser } from '@/lib/auth';
-import { mockTransactions } from '@/lib/mockData';
-import { ServiceType, QueueTransaction } from '@/types';
+import { Student, ServiceType, QueueTransaction } from '@/types';
 import { Plus, FileText, DollarSign, Settings, Clock, Users } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const StudentDashboard = () => {
   const currentUser = getCurrentUser();
   const [selectedService, setSelectedService] = useState<ServiceType>('registrar');
-  
-  // Get student's transactions
-  const studentTransactions = mockTransactions.filter(
-    t => t.studentId === currentUser?.id
-  );
+  const [selectedTime, setSelectedTime] = useState<string>("");
+  const [studentTransactions, setStudentTransactions] = useState<QueueTransaction[]>([]);
+
+  // Generate time slots (9:00 AM – 4:00 PM, every 30 mins)
+  const timeSlots = Array.from({ length: (16 - 9) * 2 + 1 }, (_, i) => {
+    const hour = 9 + Math.floor(i / 2);
+    const minutes = i % 2 === 0 ? "00" : "30";
+    const value = `${hour.toString().padStart(2, "0")}:${minutes}`;
+    const ampm = hour < 12 ? "AM" : "PM";
+    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+    return { value, label: `${hour12}:${minutes} ${ampm}` };
+  });
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("studentTransactions");
+    if (saved) {
+      const parsed: QueueTransaction[] = JSON.parse(saved).map((t: any) => ({
+        ...t,
+        dateTime: new Date(t.dateTime),
+        completedAt: t.completedAt ? new Date(t.completedAt) : undefined,
+      }));
+      setStudentTransactions(parsed);
+    }
+  }, []);
+
+  // Save to localStorage whenever transactions change
+  useEffect(() => {
+    localStorage.setItem("studentTransactions", JSON.stringify(studentTransactions));
+  }, [studentTransactions]);
 
   const handleRequestQueue = () => {
-    // Mock queue request
+    if (!selectedTime) {
+      toast({
+        title: "Pick a Time",
+        description: "Please select your preferred time before requesting a queue number.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const queueNumber = `${selectedService.substring(0, 3).toUpperCase()}-${Math.floor(Math.random() * 999) + 1}`;
-    
+
+    const newTransaction: QueueTransaction = {
+      id: Date.now().toString(),
+      studentId: currentUser?.id || "unknown",
+      student: {
+        id: currentUser?.id || "unknown",
+        fullName: currentUser?.fullName || "Unknown Student",
+        email: currentUser?.email || "unknown@ptc.edu.ph",
+        course: currentUser?.course || "Unknown",
+        yearLevel: currentUser?.yearLevel || "Unknown",
+        contactNumber: currentUser?.contactNumber || "Unknown",
+      },
+      queueNumber,
+      serviceType: selectedService,
+      status: "pending",
+      dateTime: new Date(),
+      preferredTime: selectedTime,
+    };
+
+    setStudentTransactions(prev => [...prev, newTransaction]);
+
     toast({
       title: "Queue Number Generated",
-      description: `Your queue number is ${queueNumber}. Please wait for your turn.`,
+      description: `Your queue number is ${queueNumber} at ${selectedTime}. Please arrive on time.`,
     });
   };
 
@@ -150,6 +200,22 @@ const StudentDashboard = () => {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+
+            {/* Time Picker */}
+            <div className="w-full md:w-1/3">
+              <select
+                value={selectedTime}
+                onChange={(e) => setSelectedTime(e.target.value)}
+                className="w-full border rounded-lg p-2"
+              >
+                <option value="">Select Preferred Time</option>
+                {timeSlots.map((slot) => (
+                  <option key={slot.value} value={slot.value}>
+                    {slot.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <Button 

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { QueueTransaction } from '@/types';
+import { Student, ServiceType, QueueTransaction } from '@/types';
 import { Clock, User, FileText, CheckCircle, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -54,10 +54,12 @@ export const QueueCard = ({ transaction, showActions = false, onUpdateStatus }: 
         <div className="flex items-center gap-2">
           <User className="h-4 w-4 text-muted-foreground" />
           <div>
-            <p className="font-medium">{transaction.student?.fullName}</p>
-            <p className="text-sm text-muted-foreground">
-              {transaction.student?.course} - {transaction.student?.yearLevel}
-            </p>
+             <p className="font-medium">{transaction.student?.fullName}</p>
+              {"course" in (transaction.student || {}) && (
+                <p className="text-sm text-muted-foreground">
+                  {(transaction.student as Student).course} - {(transaction.student as Student).yearLevel}
+                </p>
+              )}
           </div>
         </div>
 

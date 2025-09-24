@@ -1,26 +1,35 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Student, ServiceType, QueueTransaction } from '@/types';
-import { Clock, User, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { Student, QueueTransaction } from '@/types';
+import { Clock, User, FileText, CheckCircle, XCircle, Ban } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface QueueCardProps {
   transaction: QueueTransaction;
   showActions?: boolean;
-  onUpdateStatus?: (id: string, status: 'processing' | 'completed') => void;
+  onUpdateStatus?: (id: string, status: 'processing' | 'completed' | 'cancelled') => void;
+  allowCancel?: boolean; 
+  onCancel?: (id: string) => void;
 }
 
-export const QueueCard = ({ transaction, showActions = false, onUpdateStatus }: QueueCardProps) => {
+export const QueueCard = ({
+  transaction,
+  showActions = false,
+  onUpdateStatus,
+  allowCancel = false,
+  onCancel,
+}: QueueCardProps) => {
   const getStatusBadge = (status: string) => {
-    const variants = {
+    const variants: Record<string, string> = {
       pending: 'status-pending',
       processing: 'status-processing',
-      completed: 'status-completed'
+      completed: 'status-completed',
+      cancelled: 'bg-red-100 text-red-600',
     };
-    
+
     return (
-      <Badge className={variants[status as keyof typeof variants] || 'status-pending'}>
+      <Badge className={variants[status] || 'status-pending'}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </Badge>
     );
@@ -40,7 +49,11 @@ export const QueueCard = ({ transaction, showActions = false, onUpdateStatus }: 
   };
 
   return (
-    <Card className="shadow-soft hover:shadow-medium transition-smooth">
+    <Card
+      className={`shadow-soft hover:shadow-medium transition-smooth ${
+        transaction.status === 'cancelled' ? 'opacity-60' : ''
+      }`}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-primary">
@@ -49,17 +62,18 @@ export const QueueCard = ({ transaction, showActions = false, onUpdateStatus }: 
           {getStatusBadge(transaction.status)}
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         <div className="flex items-center gap-2">
           <User className="h-4 w-4 text-muted-foreground" />
           <div>
-             <p className="font-medium">{transaction.student?.fullName}</p>
-              {"course" in (transaction.student || {}) && (
-                <p className="text-sm text-muted-foreground">
-                  {(transaction.student as Student).course} - {(transaction.student as Student).yearLevel}
-                </p>
-              )}
+            <p className="font-medium">{transaction.student?.fullName}</p>
+            {"course" in (transaction.student || {}) && (
+              <p className="text-sm text-muted-foreground">
+                {(transaction.student as Student).course} -{' '}
+                {(transaction.student as Student).yearLevel}
+              </p>
+            )}
           </div>
         </div>
 
@@ -82,10 +96,11 @@ export const QueueCard = ({ transaction, showActions = false, onUpdateStatus }: 
           </div>
         )}
 
+        {/* --- Staff Actions --- */}
         {showActions && transaction.status === 'pending' && (
           <div className="flex gap-2 pt-2">
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               className="flex-1"
               onClick={() => onUpdateStatus?.(transaction.id, 'processing')}
             >
@@ -96,14 +111,29 @@ export const QueueCard = ({ transaction, showActions = false, onUpdateStatus }: 
 
         {showActions && transaction.status === 'processing' && (
           <div className="flex gap-2 pt-2">
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="outline"
               className="flex-1"
               onClick={() => onUpdateStatus?.(transaction.id, 'completed')}
             >
               <CheckCircle className="h-4 w-4 mr-2" />
               Complete
+            </Button>
+          </div>
+        )}
+
+        {/* --- Student Cancel Option --- */}
+        {allowCancel && transaction.status === 'pending' && (
+          <div className="pt-2">
+            <Button
+              size="sm"
+              variant="destructive"
+              className="flex-1"
+              onClick={() => onCancel?.(transaction.id)}
+            >
+              <XCircle className="h-4 w-4 mr-2" />
+              Cancel
             </Button>
           </div>
         )}

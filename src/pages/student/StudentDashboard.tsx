@@ -1,18 +1,29 @@
-import { useState, useEffect } from 'react';
-import { Layout } from '@/components/layout/Layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { QueueCard } from '@/components/queue/QueueCard';
-import { getCurrentUser } from '@/lib/auth';
-import { Student, ServiceType, QueueTransaction } from '@/types';
-import { Plus, FileText, DollarSign, Settings, Clock, Users } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { useState, useEffect } from "react";
+import { Layout } from "@/components/layout/Layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { QueueCard } from "@/components/queue/QueueCard";
+import { getCurrentUser } from "@/lib/auth";
+import { ServiceType, QueueTransaction } from "@/types";
+import {
+  Plus,
+  FileText,
+  DollarSign,
+  Settings,
+  Clock,
+  Users,
+  XCircle,
+} from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 const StudentDashboard = () => {
   const currentUser = getCurrentUser();
-  const [selectedService, setSelectedService] = useState<ServiceType>('registrar');
+  const [selectedService, setSelectedService] =
+    useState<ServiceType>("registrar");
   const [selectedTime, setSelectedTime] = useState<string>("");
-  const [studentTransactions, setStudentTransactions] = useState<QueueTransaction[]>([]);
+  const [studentTransactions, setStudentTransactions] = useState<
+    QueueTransaction[]
+  >([]);
 
   // Generate time slots (9:00 AM – 4:00 PM, every 30 mins)
   const timeSlots = Array.from({ length: (16 - 9) * 2 + 1 }, (_, i) => {
@@ -39,20 +50,27 @@ const StudentDashboard = () => {
 
   // Save to localStorage whenever transactions change
   useEffect(() => {
-    localStorage.setItem("studentTransactions", JSON.stringify(studentTransactions));
+    localStorage.setItem(
+      "studentTransactions",
+      JSON.stringify(studentTransactions)
+    );
   }, [studentTransactions]);
 
+  // Request a new queue number
   const handleRequestQueue = () => {
     if (!selectedTime) {
       toast({
         title: "Pick a Time",
-        description: "Please select your preferred time before requesting a queue number.",
+        description:
+          "Please select your preferred time before requesting a queue number.",
         variant: "destructive",
       });
       return;
     }
 
-    const queueNumber = `${selectedService.substring(0, 3).toUpperCase()}-${Math.floor(Math.random() * 999) + 1}`;
+    const queueNumber = `${selectedService
+      .substring(0, 3)
+      .toUpperCase()}-${Math.floor(Math.random() * 999) + 1}`;
 
     const newTransaction: QueueTransaction = {
       id: Date.now().toString(),
@@ -72,7 +90,7 @@ const StudentDashboard = () => {
       preferredTime: selectedTime,
     };
 
-    setStudentTransactions(prev => [...prev, newTransaction]);
+    setStudentTransactions((prev) => [...prev, newTransaction]);
 
     toast({
       title: "Queue Number Generated",
@@ -80,38 +98,59 @@ const StudentDashboard = () => {
     });
   };
 
+  // Cancel a transaction
+  const handleCancelTransaction = (id: string) => {
+    setStudentTransactions((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, status: "cancelled" } : t))
+    );
+
+    toast({
+      title: "Transaction Cancelled",
+      description: "Your request has been successfully cancelled.",
+      variant: "destructive",
+    });
+  };
+
   const serviceOptions = [
     {
-      value: 'registrar' as ServiceType,
-      label: 'Registrar Office',
-      description: 'Enrollment, grades, transcripts',
+      value: "registrar" as ServiceType,
+      label: "Registrar Office",
+      description: "Enrollment, grades, transcripts",
       icon: FileText,
-      color: 'text-primary'
+      color: "text-primary",
     },
     {
-      value: 'cashier' as ServiceType,
-      label: 'Cashier Office',
-      description: 'Payments, receipts, billing',
+      value: "cashier" as ServiceType,
+      label: "Cashier Office",
+      description: "Payments, receipts, billing",
       icon: DollarSign,
-      color: 'text-secondary'
+      color: "text-secondary",
     },
     {
-      value: 'admin' as ServiceType,
-      label: 'Admin Office',
-      description: 'General inquiries, documents',
+      value: "admin" as ServiceType,
+      label: "Admin Office",
+      description: "General inquiries, documents",
       icon: Settings,
-      color: 'text-accent'
-    }
+      color: "text-accent",
+    },
   ];
 
-  const pendingTransactions = studentTransactions.filter(t => t.status === 'pending');
+  const pendingTransactions = studentTransactions.filter(
+    (t) => t.status === "pending"
+  );
+  const cancelledTransactions = studentTransactions.filter(
+    (t) => t.status === "cancelled"
+  );
   const recentTransactions = studentTransactions.slice(-5);
 
   return (
     <Layout title="Student Portal">
-      <div className="space-y-6">
+      <div
+        className="space-y-6 min-h-screen bg-cover bg-center p-6"
+        style={{ backgroundImage: "url('/ptcfront.png')" }}
+      >
         {/* Welcome Section */}
-        <div className="gradient-hero rounded-xl p-6 text-white shadow-strong">
+        <div className="gradient-hero rounded-xl p-6 text-white shadow-strong bg-black/50">
           <h1 className="text-2xl font-bold mb-2">
             Welcome, {currentUser?.fullName}!
           </h1>
@@ -121,7 +160,7 @@ const StudentDashboard = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="shadow-soft">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
@@ -130,7 +169,9 @@ const StudentDashboard = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Pending</p>
-                  <p className="text-2xl font-bold">{pendingTransactions.length}</p>
+                  <p className="text-2xl font-bold">
+                    {pendingTransactions.length}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -144,7 +185,9 @@ const StudentDashboard = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Requests</p>
-                  <p className="text-2xl font-bold">{studentTransactions.length}</p>
+                  <p className="text-2xl font-bold">
+                    {studentTransactions.length}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -159,7 +202,26 @@ const StudentDashboard = () => {
                 <div>
                   <p className="text-sm text-muted-foreground">Completed</p>
                   <p className="text-2xl font-bold">
-                    {studentTransactions.filter(t => t.status === 'completed').length}
+                    {
+                      studentTransactions.filter((t) => t.status === "completed")
+                        .length
+                    }
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-soft">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-red-100 flex items-center justify-center">
+                  <XCircle className="h-5 w-5 text-red-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Cancelled</p>
+                  <p className="text-2xl font-bold">
+                    {cancelledTransactions.length}
                   </p>
                 </div>
               </div>
@@ -168,7 +230,7 @@ const StudentDashboard = () => {
         </div>
 
         {/* Request New Queue */}
-        <Card className="shadow-medium">
+        <Card className="shadow-medium bg-white/90 backdrop-blur">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Plus className="h-5 w-5" />
@@ -178,12 +240,12 @@ const StudentDashboard = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {serviceOptions.map((service) => (
-                <Card 
+                <Card
                   key={service.value}
                   className={`cursor-pointer transition-smooth border-2 ${
-                    selectedService === service.value 
-                      ? 'border-primary shadow-medium' 
-                      : 'border-border hover:border-primary/50'
+                    selectedService === service.value
+                      ? "border-primary shadow-medium"
+                      : "border-border hover:border-primary/50"
                   }`}
                   onClick={() => setSelectedService(service.value)}
                 >
@@ -194,7 +256,9 @@ const StudentDashboard = () => {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold">{service.label}</h3>
-                        <p className="text-sm text-muted-foreground">{service.description}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {service.description}
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -218,7 +282,7 @@ const StudentDashboard = () => {
               </select>
             </div>
 
-            <Button 
+            <Button
               onClick={handleRequestQueue}
               className="w-full gradient-primary"
               size="lg"
@@ -230,16 +294,18 @@ const StudentDashboard = () => {
 
         {/* Current Queue Status */}
         {pendingTransactions.length > 0 && (
-          <Card className="shadow-medium">
+          <Card className="shadow-medium bg-white/90 backdrop-blur">
             <CardHeader>
               <CardTitle>Your Current Queue</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {pendingTransactions.map((transaction) => (
-                  <QueueCard 
-                    key={transaction.id} 
+                  <QueueCard
+                    key={transaction.id}
                     transaction={transaction}
+                    allowCancel
+                    onCancel={handleCancelTransaction}
                   />
                 ))}
               </div>
@@ -248,7 +314,7 @@ const StudentDashboard = () => {
         )}
 
         {/* Recent Transactions */}
-        <Card className="shadow-soft">
+        <Card className="shadow-soft bg-white/90 backdrop-blur">
           <CardHeader>
             <CardTitle>Recent Transactions</CardTitle>
           </CardHeader>
@@ -256,15 +322,37 @@ const StudentDashboard = () => {
             {recentTransactions.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {recentTransactions.map((transaction) => (
-                  <QueueCard 
-                    key={transaction.id} 
+                  <QueueCard
+                    key={transaction.id}
                     transaction={transaction}
+                    allowCancel
+                    onCancel={handleCancelTransaction}
                   />
                 ))}
               </div>
             ) : (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">No transactions yet</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Cancelled Transactions */}
+        <Card className="shadow-soft bg-white/90 backdrop-blur">
+          <CardHeader>
+            <CardTitle>Cancelled Transactions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {cancelledTransactions.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {cancelledTransactions.map((transaction) => (
+                  <QueueCard key={transaction.id} transaction={transaction} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No cancelled transactions</p>
               </div>
             )}
           </CardContent>

@@ -2,7 +2,7 @@ export type UserRole = 'student' | 'registrar' | 'cashier' | 'admin';
 
 export type ServiceType = 'registrar' | 'cashier' | 'admin';
 
-export type TransactionStatus = 'pending' | 'processing' | 'completed';
+export type TransactionStatus = 'pending' | 'processing' | 'completed' | 'cancelled';
 
 export interface Student {
   id: string;
@@ -13,6 +13,16 @@ export interface Student {
   email: string;
   contactNumber: string;
   role: "student";
+  password: string;
+}
+
+//Student extends User
+export interface Student extends User {
+  role: 'student';
+  course: string;
+  yearLevel: string;
+  section: string;
+  contactNumber: string;
 }
 
 export interface QueueTransaction {
@@ -32,6 +42,13 @@ export interface Staff {
   id: string;
   fullName: string;
   role: UserRole;
+  username: string;
+  serviceType?: ServiceType;
+  password: string;
+}
+
+export interface Staf extends User {
+  role: "registrar" | "cashier" | "admin";
   username: string;
   serviceType?: ServiceType;
 }
@@ -56,4 +73,9 @@ export interface User {
   role: UserRole;
   email: string;
   serviceType?: ServiceType;
+  username?: string;
+  password: string;
+  course?: string;
+  yearLevel?: string;
+  contactNumber?: string;
 }

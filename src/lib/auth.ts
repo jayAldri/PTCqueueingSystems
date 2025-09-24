@@ -1,22 +1,25 @@
 import { User, UserRole } from '@/types';
 import { mockStudents, mockStaff } from './mockData';
 
-// Mock authentication - In real app, this would connect to Supabase
+// Combine students and staff into one user array
 export const mockUsers: User[] = [
   // Students
   ...mockStudents.map(student => ({
     id: student.id,
     fullName: student.fullName,
     role: 'student' as UserRole,
-    email: student.email
+    email: student.email,
+    password: student.password 
   })),
   // Staff
   ...mockStaff.map(staff => ({
     id: staff.id,
     fullName: staff.fullName,
     role: staff.role,
-    email: `${staff.username}@paterostechnologicalcollege.edu.ph`,
-    serviceType: staff.serviceType
+    email: `${staff.username}@paterostechnologicalcollege.edu.ph`, // just for consistency
+    username: staff.username,
+    serviceType: staff.serviceType,
+    password: staff.password 
   }))
 ];
 
@@ -25,17 +28,22 @@ export const getCurrentUser = (): User | null => {
   return storedUser ? JSON.parse(storedUser) : null;
 };
 
-export const login = async (email: string, password: string): Promise<User | null> => {
-  if (!email.endsWith('@paterostechnologicalcollege.edu.ph')){
-    return null;
-  }
+export const login = async (identifier: string, password: string): Promise<User | null> => {
+  // normalize input for case-insensitive check
+  const lowerIdentifier = identifier.toLowerCase();
 
-  // Mock login - find user by email
-  const user = mockUsers.find(u => u.email === email);
-  if (user && password === 'password123') { // Mock password
-    localStorage.setItem('currentUser', JSON.stringify(user));
+  // allow login by email OR username
+  const user = mockUsers.find(u =>
+    (u.email && u.email.toLowerCase() === lowerIdentifier) ||
+    (u.username && u.username.toLowerCase() === lowerIdentifier)
+  );
+
+  // accept only password123 for testing
+  if (user && password === "password123") {
+    localStorage.setItem("currentUser", JSON.stringify(user));
     return user;
   }
+
   return null;
 };
 

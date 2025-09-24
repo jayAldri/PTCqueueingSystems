@@ -6,75 +6,66 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { login } from '@/lib/auth';
-import { AlertCircle, GraduationCap } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState(''); 
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
-  setError('');
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-  try {
-    const user = await login(email, password); // mock or real login API
+    try {
+      const user = await login(identifier, password); 
 
-    if (user) {
-      // Save user in localStorage
-      localStorage.setItem("currentUser", JSON.stringify(user));
+      if (user) {
+        localStorage.setItem("currentUser", JSON.stringify(user));
 
-      if (user.role === "student") {
-        try {
-          //  Check if this student already has a profile in DB
-          const res = await fetch(`http://localhost:5000/students/${user.id}`);
-          
-          if (res.status === 404) {
-            //  No profile → redirect to profile completion
+        if (user.role === "student") {
+          try {
+            const res = await fetch(`http://localhost:5000/students/${user.id}`);
+            if (res.status === 404) {
+              navigate("/student/profile");
+            } else {
+              navigate("/student");
+            }
+          } catch (err) {
+            console.error("Error checking student profile:", err);
             navigate("/student/profile");
-          } else {
-            //  Profile exists → go to dashboard
-            navigate("/student");
           }
-        } catch (err) {
-          console.error("Error checking student profile:", err);
-          // fallback: ask them to complete profile
-          navigate("/student/profile");
+        } else {
+          switch (user.role) {
+            case "registrar":
+              navigate("/staff/registrar");
+              break;
+            case "cashier":
+              navigate("/staff/cashier");
+              break;
+            case "admin":
+              navigate("/admin");
+              break;
+            default:
+              navigate("/");
+          }
         }
       } else {
-        // Roles other than student → direct to their dashboards
-        switch (user.role) {
-          case "registrar":
-            navigate("/staff/registrar");
-            break;
-          case "cashier":
-            navigate("/staff/cashier");
-            break;
-          case "admin":
-            navigate("/admin");
-            break;
-          default:
-            navigate("/");
-        }
+        setError("Invalid email/username or password");
       }
-    } else {
-      setError("Invalid email or password");
+    } catch (err) {
+      console.error(err);
+      setError("Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error(err);
-    setError("Login failed. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
-
-
-  const quickLogin = (role: string, email: string) => {
-    setEmail(email);
+  const quickLogin = (role: string, identifier: string) => {
+    setIdentifier(identifier);
     setPassword('password123');
   };
 
@@ -90,13 +81,11 @@ const handleSubmit = async (e: React.FormEvent) => {
       <div className="relative w-full max-w-md space-y-6 z-10">
         <div className="text-center space-y-2">
           <div className="flex justify-center">
-            <div className="flex justify-center">
-              <img
-                src="/ptclogo.png"
-                alt="PTC Logo"
-                className="h-20 w-20 rounded-full shadow-lg object-contain bg-white p-1"
-              />
-            </div>
+            <img
+              src="/ptclogo.png"
+              alt="PTC Logo"
+              className="h-20 w-20 rounded-full shadow-lg object-contain bg-white p-1"
+            />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             PTC Queue System
@@ -111,17 +100,17 @@ const handleSubmit = async (e: React.FormEvent) => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="identifier">Email or Username</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
+                  id="identifier"
+                  type="text"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  placeholder="Enter your email or username"
                   required
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
@@ -148,6 +137,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           </CardContent>
         </Card>
 
+        {/* Demo Accounts */}
         <Card className="shadow-medium">
           <CardHeader>
             <CardTitle className="text-sm">Demo Accounts</CardTitle>
@@ -157,33 +147,33 @@ const handleSubmit = async (e: React.FormEvent) => {
               variant="outline" 
               size="sm" 
               className="w-full justify-start"
-              onClick={() => quickLogin('student', 'juan.santos@ptc.edu.ph')}
+              onClick={() => quickLogin('student', 'JayAldrin.Rabi@paterostechnologicalcollege.edu.ph')}
             >
-              Student: juan.santos@ptc.edu.ph
+              Student: JayAldrin.Rabi@paterostechnologicalcollege.edu.ph
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
               className="w-full justify-start"
-              onClick={() => quickLogin('registrar', 'e.rodriguez@ptc.edu.ph')}
+              onClick={() => quickLogin('registrar', 'e.rodriguez')}
             >
-              Registrar: e.rodriguez@ptc.edu.ph
+              Registrar: e.rodriguez
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
               className="w-full justify-start"
-              onClick={() => quickLogin('cashier', 'c.mendoza@ptc.edu.ph')}
+              onClick={() => quickLogin('cashier', 'c.mendoza')}
             >
-              Cashier: c.mendoza@ptc.edu.ph
+              Cashier: c.mendoza
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
               className="w-full justify-start"
-              onClick={() => quickLogin('admin', 'p.santos@ptc.edu.ph')}
+              onClick={() => quickLogin('admin', 'p.santos')}
             >
-              Admin: p.santos@ptc.edu.ph
+              Admin: p.santos
             </Button>
             <p className="text-xs text-muted-foreground mt-2">
               Password for all demo accounts: password123

@@ -3,27 +3,39 @@ import { Student, QueueTransaction, Staff, ServiceType, TransactionStatus } from
 export const mockStudents: Student[] = [
   {
     id: '1',
-    fullName: 'Juan Carlos Santos',
+    fullName: 'Jay Aldrin O Rabi',
     course: 'BSIT',
     yearLevel: '3rd Year',
-    email: 'juan.santos@ptc.edu.ph',
-    contactNumber: '+639123456789'
+    email: 'JayAldrin.Rabi@paterostechnologicalcollege.edu.ph',
+    contactNumber: '+639123456789',
+    section: "BSIT-3G",
+    role: "student",
+    username: "JayAldrin.Rabi",
+    password: "password123"
   },
   {
     id: '2',
     fullName: 'Maria Isabel Cruz',
     course: 'BSCS',
     yearLevel: '2nd Year',
-    email: 'maria.cruz@ptc.edu.ph',
-    contactNumber: '+639987654321'
+    email: 'Maria.Cruz@paterostechnologicalcollege.edu.ph',
+    contactNumber: '+639987654321',
+    section: "BSIT-2G",
+    role: "student",
+    username: "Maria.Cruz",
+    password: "password123"
   },
   {
     id: '3',
     fullName: 'Roberto Dela Cruz',
     course: 'BSECE',
     yearLevel: '4th Year',
-    email: 'roberto.delacruz@ptc.edu.ph',
-    contactNumber: '+639456123789'
+    email: 'Roberto.DelaCruz@paterostechnologicalcollege.edu.phh',
+    contactNumber: '+639456123789',
+    section: "BSIT-4G",
+    role: "student",
+    username: "Roberto.DelaCruz",
+    password: "password123"
   }
 ];
 
@@ -33,20 +45,23 @@ export const mockStaff: Staff[] = [
     fullName: 'Mrs. Elena Rodriguez',
     role: 'registrar',
     username: 'e.rodriguez',
-    serviceType: 'registrar'
+    serviceType: 'registrar',
+    password: "password123"
   },
   {
     id: 'staff2',
     fullName: 'Mr. Carlos Mendoza',
     role: 'cashier',
     username: 'c.mendoza',
-    serviceType: 'cashier'
+    serviceType: 'cashier',
+    password: "password123"
   },
   {
     id: 'staff3',
     fullName: 'Dr. Patricia Santos',
     role: 'admin',
-    username: 'p.santos'
+    username: 'p.santos',
+    password: "password123"
   }
 ];
 
@@ -88,6 +103,17 @@ export const generateMockTransactions = (): QueueTransaction[] => {
 };
 
 export const mockTransactions = generateMockTransactions();
+
+/** Helper: cancel transaction by id */
+export const cancelTransaction = (id: string): QueueTransaction | null => {
+  const transaction = mockTransactions.find(t => t.id === id);
+  if (transaction && (transaction.status === 'pending' || transaction.status === 'processing')) {
+    transaction.status = 'cancelled';
+    transaction.notes = 'Transaction cancelled by student';
+    return transaction;
+  }
+  return null;
+};
 
 export const getServiceQueue = (serviceType: ServiceType) => {
   return mockTransactions.filter(t => t.serviceType === serviceType);
